@@ -1,0 +1,27 @@
+# Build outputs
+bin/
+obj/
+*.dll
+*.pdb
+*.exe
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.csproj.user
+
+# NuGet
+packages/
+*.nupkg
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Runtime files (created in game directory)
+config.ini
+*.log
