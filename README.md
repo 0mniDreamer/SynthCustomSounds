@@ -18,7 +18,7 @@ Replace any in-game sound effect with your own audio files. Supports multiple so
 
 ### Requirements
 - Synth Riders (PCVR)
-- [MelonLoader 0.6.x](https://melonwiki.xyz/)
+- [MelonLoader 0.7.x](https://melonwiki.xyz/)
 
 ### Steps
 1. Install MelonLoader if you haven't already
@@ -31,10 +31,8 @@ Replace any in-game sound effect with your own audio files. Supports multiple so
 
 | File Name | Sound |
 |-----------|-------|
-| `hit.wav` | Note hit / Laser hit |
+| `hit.wav` | Note hit / Laser hit | 
 | `miss.wav` | Missed note |
-| `railstart.wav` | Rail/slider start |
-| `railend.wav` | Rail/slider end |
 | `special.wav` | Special note start |
 | `specialpass.wav` | Special complete |
 | `specialfail.wav` | Special fail |
@@ -120,7 +118,7 @@ miss = true
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/SynthCustomSounds.git
+   git clone https://github.com/0mniDreamer/SynthCustomSounds.git
    ```
 
 2. Update the path in `SynthCustomSounds.csproj`:
