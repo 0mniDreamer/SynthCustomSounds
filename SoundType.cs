@@ -38,11 +38,11 @@ namespace SynthCustomSounds
             { SoundType.Wall, new[] { "wall" } },
             { SoundType.ButtonClick, new[] { "buttonclick", "click" } },
             { SoundType.ButtonHover, new[] { "buttonhover", "hover" } },
-            { SoundType.GameOver, new[] { "gameover", "game_over" } },
-            { SoundType.EndMessage, new[] { "endmessage", "end_message" } },
-            { SoundType.ResultBGM, new[] { "resultbgm", "result" } },
-            { SoundType.Ambient, new[] { "ambient" } },
-            { SoundType.Applause, new[] { "applause" } }
+            { SoundType.GameOver, new[] { "gameover", "game_over", "carro", "outro" } },
+            { SoundType.EndMessage, new[] { "endmessage", "end_message", "scoreend", "score_end" } },
+            { SoundType.ResultBGM, new[] { "resultbgm", "result", "resultmusic", "result_music" } },
+            { SoundType.Ambient, new[] { "ambient", "background" } },
+            { SoundType.Applause, new[] { "applause", "crowd", "cheer" } }
         };
 
         public static readonly Dictionary<SoundType, string> DisplayNames = new Dictionary<SoundType, string>
@@ -58,8 +58,8 @@ namespace SynthCustomSounds
             { SoundType.Wall, "Wall Hit" },
             { SoundType.ButtonClick, "Button Click" },
             { SoundType.ButtonHover, "Button Hover" },
-            { SoundType.GameOver, "Game Over" },
-            { SoundType.EndMessage, "End Message" },
+            { SoundType.GameOver, "Game Over / Outro" },
+            { SoundType.EndMessage, "Score End" },
             { SoundType.ResultBGM, "Result Music" },
             { SoundType.Ambient, "Result Ambient" },
             { SoundType.Applause, "Applause" }

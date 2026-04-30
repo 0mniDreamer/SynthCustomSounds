@@ -6,7 +6,6 @@ using System.Linq;
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.Networking;
-using Il2CppInterop.Runtime;
 
 namespace SynthCustomSounds
 {
@@ -179,26 +178,23 @@ namespace SynthCustomSounds
             {
                 SynthCustomSoundsMod.Log("Applying result screen sounds...");
 
-                GameObject bgAudio = GameObject.Find("[Background Audio]");
-                if (bgAudio == null)
-                {
-                    SynthCustomSoundsMod.Log("  Background Audio not found");
-                    return;
-                }
+                // CORRECT PATHS from the scene dump:
+                // [Score Summary]/[Background Audio]/[Music] -> Result BGM
+                // [Score Summary]/[Background Audio] -> Ambient
+                // [Score Summary]/[Background Audio]/ScoreEnd -> End score sound
+                // [Score Summary]/[Background Audio]/CarroSFx -> Game over/outro SFX
 
-                Transform music = bgAudio.transform.Find("[Music]");
-                if (music != null)
-                {
-                    AudioSource musicSource = music.GetComponent<AudioSource>();
-                    if (musicSource != null)
-                    {
-                        var files = FindFilesForType(SoundType.ResultBGM);
-                        if (files.Count > 0)
-                        {
-                            MelonCoroutines.Start(LoadAndApplyToSource(files[0], musicSource));
-                        }
-                    }
-                }
+                // Result BGM (background music on result screen)
+                ApplySoundToPath(SoundType.ResultBGM, "[Score Summary]/[Background Audio]/[Music]", "ResultBGM", false);
+
+                // Ambient sound
+                ApplySoundToPath(SoundType.Ambient, "[Score Summary]/[Background Audio]", "Ambient", false);
+
+                // End Message / Score End sound
+                ApplySoundToPath(SoundType.EndMessage, "[Score Summary]/[Background Audio]/ScoreEnd", "EndMessage", true);
+
+                // Game Over / Outro SFX (the Carro sound) - STOP IMMEDIATELY
+                ApplySoundToPath(SoundType.GameOver, "[Score Summary]/[Background Audio]/CarroSFx", "GameOver", true);
             }
             catch (Exception ex)
             {
@@ -206,17 +202,59 @@ namespace SynthCustomSounds
             }
         }
 
-        private IEnumerator LoadAndApplyToSource(string filePath, AudioSource source)
+        private void ApplySoundToPath(SoundType soundType, string path, string displayName, bool stopFirst)
+        {
+            var files = FindFilesForType(soundType);
+            if (files.Count == 0)
+            {
+                SynthCustomSoundsMod.Log($"  {displayName}: No custom sound files found");
+                return;
+            }
+
+            GameObject obj = GameObject.Find(path);
+            if (obj == null)
+            {
+                SynthCustomSoundsMod.Log($"  {displayName}: GameObject not found at '{path}'");
+                return;
+            }
+
+            AudioSource source = obj.GetComponent<AudioSource>();
+            if (source == null)
+            {
+                SynthCustomSoundsMod.Log($"  {displayName}: No AudioSource component at '{path}'");
+                return;
+            }
+
+            // IMMEDIATELY stop the source to prevent original sound playing
+            if (stopFirst)
+            {
+                source.Stop();
+                SynthCustomSoundsMod.Log($"  {displayName}: Stopped source at '{path}'");
+            }
+
+            SynthCustomSoundsMod.Log($"  {displayName}: Loading custom sound...");
+            MelonCoroutines.Start(LoadAndApplyToSource(files[0], source, displayName, stopFirst));
+        }
+
+        private IEnumerator LoadAndApplyToSource(string filePath, AudioSource source, string soundName, bool playAfter)
         {
             AudioClip clip = null;
 
             yield return LoadAudioFile(filePath, c => clip = c);
 
-            if (clip != null)
+            if (clip != null && source != null)
             {
                 source.clip = clip;
-                source.Play();
-                SynthCustomSoundsMod.Log($"  Applied result music");
+
+                if (playAfter)
+                {
+                    source.Play();
+                    SynthCustomSoundsMod.Log($"    ✓ Applied and played {soundName}: {clip.name}");
+                }
+                else
+                {
+                    SynthCustomSoundsMod.Log($"    ✓ Applied {soundName}: {clip.name}");
+                }
             }
         }
     }
