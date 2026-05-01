@@ -2,12 +2,14 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using HarmonyLib;
-using MelonLoader;
 using UnityEngine;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 
 namespace SynthCustomSounds
 {
+    /// <summary>
+    /// Harmony patches for replacing game audio clips
+    /// </summary>
     public static class SoundPatches
     {
         private static HarmonyLib.Harmony _harmony;
@@ -20,18 +22,14 @@ namespace SynthCustomSounds
             {
                 _harmony = new HarmonyLib.Harmony("com.synthcustomsounds.patches");
 
-                SynthCustomSoundsMod.Log("=== FINDING AUDIO CLASSES ===");
                 FindGameTypes();
-
-                SynthCustomSoundsMod.Log("=== APPLYING PATCHES ===");
                 ApplyPatches();
 
-                SynthCustomSoundsMod.Log("=== DONE ===");
+                SynthCustomSoundsMod.Log("Sound patches initialized");
             }
             catch (Exception ex)
             {
-                SynthCustomSoundsMod.LogError($"Failed: {ex.Message}");
-                SynthCustomSoundsMod.LogError(ex.StackTrace);
+                SynthCustomSoundsMod.LogError($"Failed to initialize patches: {ex.Message}");
             }
         }
 
@@ -49,13 +47,11 @@ namespace SynthCustomSounds
                         if (_hitSFXSourceType == null && typeName.Contains("HitSFX"))
                         {
                             _hitSFXSourceType = type;
-                            SynthCustomSoundsMod.Log($"  ✓ Found HitSFX: {fullName}");
                         }
 
                         if (_extraSFXControllerType == null && fullName.Contains("ExtraSFX"))
                         {
                             _extraSFXControllerType = type;
-                            SynthCustomSoundsMod.Log($"  ✓ Found ExtraSFX: {fullName}");
                         }
                     }
                 }
@@ -65,6 +61,7 @@ namespace SynthCustomSounds
 
         private static void ApplyPatches()
         {
+            // Patch HitSFXSource.Awake for gameplay sounds
             if (_hitSFXSourceType != null)
             {
                 try
@@ -75,15 +72,16 @@ namespace SynthCustomSounds
                     if (method != null)
                     {
                         _harmony.Patch(method, postfix: new HarmonyMethod(typeof(SoundPatches), nameof(HitSFXAwakePostfix)));
-                        SynthCustomSoundsMod.Log($"  ✓ Patched HitSFXSource.Awake");
+                        SynthCustomSoundsMod.Log("  ✓ Patched gameplay sounds");
                     }
                 }
                 catch (Exception ex)
                 {
-                    SynthCustomSoundsMod.LogError($"  ✗ Failed to patch HitSFX: {ex.Message}");
+                    SynthCustomSoundsMod.LogError($"  ✗ Failed to patch gameplay sounds: {ex.Message}");
                 }
             }
 
+            // Patch ExtraSFXAudioController.Awake for UI sounds
             if (_extraSFXControllerType != null)
             {
                 try
@@ -94,20 +92,21 @@ namespace SynthCustomSounds
                     if (method != null)
                     {
                         _harmony.Patch(method, postfix: new HarmonyMethod(typeof(SoundPatches), nameof(ExtraSFXAwakePostfix)));
-                        SynthCustomSoundsMod.Log($"  ✓ Patched ExtraSFXAudioController.Awake");
+                        SynthCustomSoundsMod.Log("  ✓ Patched UI sounds");
                     }
                 }
                 catch (Exception ex)
                 {
-                    SynthCustomSoundsMod.LogError($"  ✗ Failed to patch ExtraSFX: {ex.Message}");
+                    SynthCustomSoundsMod.LogError($"  ✗ Failed to patch UI sounds: {ex.Message}");
                 }
             }
         }
 
+        /// <summary>
+        /// Called after HitSFXSource.Awake - replaces gameplay sound clips
+        /// </summary>
         public static void HitSFXAwakePostfix(object __instance)
         {
-            SynthCustomSoundsMod.Log(">>> HitSFXSource.Awake called <<<");
-
             if (SynthCustomSoundsMod.Settings == null || !SynthCustomSoundsMod.Settings.Enabled)
                 return;
 
@@ -116,8 +115,7 @@ namespace SynthCustomSounds
 
             Type t = __instance.GetType();
 
-            // Arrays (Il2CppReferenceArray) - these are PROPERTIES in IL2CPP
-            // Use index 1 for Laser type, index 0 for Impact type
+            // Array properties (use index 1 for Laser sounds)
             var arrayProps = new Dictionary<SoundType, string[]>
             {
                 { SoundType.Hit, new[] { "m_hitClip", "m_hitBadClip", "m_hitPerfectClip" } },
@@ -125,7 +123,7 @@ namespace SynthCustomSounds
                 { SoundType.RailEnd, new[] { "m_lineEndClip" } }
             };
 
-            // Single AudioClip properties
+            // Single clip properties
             var singleProps = new Dictionary<SoundType, string[]>
             {
                 { SoundType.Miss, new[] { "m_failClip" } },
@@ -136,7 +134,7 @@ namespace SynthCustomSounds
                 { SoundType.Wall, new[] { "m_failClipWall" } }
             };
 
-            // Handle array properties (Hit, RailStart, RailEnd)
+            // Apply array properties
             foreach (var kvp in arrayProps)
             {
                 SoundType soundType = kvp.Key;
@@ -144,8 +142,6 @@ namespace SynthCustomSounds
 
                 var files = manager.FindFilesForType(soundType);
                 if (files.Count == 0) continue;
-
-                SynthCustomSoundsMod.Log($"  Loading {soundType}: {files.Count} file(s)");
 
                 manager.LoadSoundsForType(soundType, clips => {
                     if (clips.Count > 0)
@@ -159,7 +155,7 @@ namespace SynthCustomSounds
                 });
             }
 
-            // Handle single clip properties
+            // Apply single properties
             foreach (var kvp in singleProps)
             {
                 SoundType soundType = kvp.Key;
@@ -167,8 +163,6 @@ namespace SynthCustomSounds
 
                 var files = manager.FindFilesForType(soundType);
                 if (files.Count == 0) continue;
-
-                SynthCustomSoundsMod.Log($"  Loading {soundType}: {files.Count} file(s)");
 
                 manager.LoadSoundsForType(soundType, clips => {
                     if (clips.Count > 0)
@@ -184,86 +178,10 @@ namespace SynthCustomSounds
         }
 
         /// <summary>
-        /// Sets an element in an IL2CPP array PROPERTY
+        /// Called after ExtraSFXAudioController.Awake - replaces UI sound clips
         /// </summary>
-        private static void SetArrayProperty(Type type, object instance, string propName, AudioClip clip)
-        {
-            try
-            {
-                // Get the property
-                var prop = type.GetProperty(propName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                if (prop == null)
-                {
-                    SynthCustomSoundsMod.Log($"    Property {propName} not found");
-                    return;
-                }
-
-                // Get the array value
-                object arrayObj = prop.GetValue(instance);
-                if (arrayObj == null)
-                {
-                    SynthCustomSoundsMod.Log($"    {propName} is null");
-                    return;
-                }
-
-                // Cast to Il2CppReferenceArray<AudioClip>
-                if (arrayObj is Il2CppReferenceArray<AudioClip> il2cppArray)
-                {
-                    // Use index 1 for Laser if available, else 0
-                    int idx = (il2cppArray.Length > 1) ? 1 : 0;
-                    il2cppArray[idx] = clip;
-                    SynthCustomSoundsMod.Log($"    ✓ {propName}[{idx}] = {clip.name}");
-                    return;
-                }
-
-                // Fallback: try using reflection on the indexer
-                Type arrayType = arrayObj.GetType();
-                var indexer = arrayType.GetProperty("Item");
-                var lengthProp = arrayType.GetProperty("Length") ?? arrayType.GetProperty("Count");
-
-                if (indexer != null && indexer.CanWrite && lengthProp != null)
-                {
-                    int length = (int)lengthProp.GetValue(arrayObj);
-                    int idx = (length > 1) ? 1 : 0;
-                    indexer.SetValue(arrayObj, clip, new object[] { idx });
-                    SynthCustomSoundsMod.Log($"    ✓ {propName}[{idx}] = {clip.name} (indexer)");
-                    return;
-                }
-
-                SynthCustomSoundsMod.Log($"    ✗ {propName}: Could not set array element, type={arrayType.Name}");
-            }
-            catch (Exception ex)
-            {
-                SynthCustomSoundsMod.Log($"    ✗ {propName} error: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Sets a single AudioClip property
-        /// </summary>
-        private static void SetSingleProperty(Type type, object instance, string propName, AudioClip clip)
-        {
-            try
-            {
-                var prop = type.GetProperty(propName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                if (prop != null && prop.CanWrite)
-                {
-                    prop.SetValue(instance, clip);
-                    SynthCustomSoundsMod.Log($"    ✓ {propName} = {clip.name}");
-                    return;
-                }
-                SynthCustomSoundsMod.Log($"    ✗ {propName} not found or not writable");
-            }
-            catch (Exception ex)
-            {
-                SynthCustomSoundsMod.Log($"    ✗ {propName} error: {ex.Message}");
-            }
-        }
-
         public static void ExtraSFXAwakePostfix(object __instance)
         {
-            SynthCustomSoundsMod.Log(">>> ExtraSFXAudioController.Awake called <<<");
-
             if (SynthCustomSoundsMod.Settings == null || !SynthCustomSoundsMod.Settings.Enabled)
                 return;
 
@@ -286,8 +204,6 @@ namespace SynthCustomSounds
                 var files = manager.FindFilesForType(soundType);
                 if (files.Count == 0) continue;
 
-                SynthCustomSoundsMod.Log($"  Loading {soundType}: {files.Count} file(s)");
-
                 manager.LoadSoundsForType(soundType, clips => {
                     if (clips.Count > 0)
                     {
@@ -295,6 +211,39 @@ namespace SynthCustomSounds
                     }
                 });
             }
+        }
+
+        private static void SetArrayProperty(Type type, object instance, string propName, AudioClip clip)
+        {
+            try
+            {
+                var prop = type.GetProperty(propName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (prop == null) return;
+
+                object arrayObj = prop.GetValue(instance);
+                if (arrayObj == null) return;
+
+                if (arrayObj is Il2CppReferenceArray<AudioClip> il2cppArray)
+                {
+                    // Index 1 is used for Laser controller sounds
+                    int idx = (il2cppArray.Length > 1) ? 1 : 0;
+                    il2cppArray[idx] = clip;
+                }
+            }
+            catch { }
+        }
+
+        private static void SetSingleProperty(Type type, object instance, string propName, AudioClip clip)
+        {
+            try
+            {
+                var prop = type.GetProperty(propName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (prop != null && prop.CanWrite)
+                {
+                    prop.SetValue(instance, clip);
+                }
+            }
+            catch { }
         }
     }
 }
