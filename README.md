@@ -1,69 +1,68 @@
-# SynthCustomSounds
+# Synth Custom Sounds
 
-> **Custom Sound Replacer for Synth Riders**  
-> IL2CPP / .NET 6 / MelonLoader 0.6.x
-
-Replace any in-game sound effect with your own audio files. Supports multiple sounds per type with random selection, per-sound volume control, and pitch variation.
+A MelonLoader mod for Synth Riders that lets you replace game sounds with your own custom audio files.
 
 ## Features
 
-- 🎵 **16 Replaceable Sounds** - Hit, miss, rail, special, menu, and more
-- 🎲 **Multi-Sound Support** - Multiple files per type = random selection
-- 🔊 **Volume Control** - Master volume + per-sound-type volumes
-- 🎛️ **Pitch Variation** - Slight randomness for natural feel
-- 📁 **Multiple Formats** - WAV, OGG, MP3
-- ⚙️ **Full Configuration** - INI file for all settings
+Replace these sounds with your own:
+
+### Gameplay Sounds
+- **Hit** - Note hit sounds
+- **Miss** - Note miss sounds  
+- **Special** - Special note activation
+- **Special Pass** - Successfully completing a special
+- **Special Fail** - Failing a special
+- **Max Multiplier** - Reaching 6x multiplier
+- **Wall** - Wall hit sounds
+
+### UI Sounds
+- **Button Click** - Menu button clicks
+- **Button Hover** - Menu button hover sounds
+
+### Result Screen Sounds
+- **Result BGM** - Background music on the score screen
+- **Ambient** - Ambient background audio
+- **End Message** - The score announcement sound
+
 
 ## Installation
 
-### Requirements
-- Synth Riders (PCVR)
-- [MelonLoader 0.7.x](https://melonwiki.xyz/)
+1. Install [MelonLoader](https://melonwiki.xyz/) for Synth Riders
+2. Download the latest release
+3. Place `SynthCustomSounds.dll` in your `SynthRiders/Mods/` folder
+4. Launch the game once to create the config folder
+5. Place your sound files in `SynthRiders/SynthCustomSounds/`
 
-### Steps
-1. Install MelonLoader if you haven't already
-2. Download `SynthCustomSounds.dll` from Releases
-3. Place it in `Synth Riders/Mods/`
-4. Run the game once to create the config folder
-5. Add your sounds to `Synth Riders/SynthCustomSounds/`
+## Sound File Setup
 
-## Supported Sounds
+Place audio files in `SynthRiders/SynthCustomSounds/` with names matching the sound type:
 
-| File Name | Sound |
-|-----------|-------|
-| `hit.wav` | Note hit / Laser hit | 
-| `miss.wav` | Missed note |
-| `special.wav` | Special note start |
-| `specialpass.wav` | Special complete |
-| `specialfail.wav` | Special fail |
-| `maxmultiplier.wav` | 6x multiplier achieved |
-| `wall.wav` | Wall hit |
-| `buttonclick.wav` | Menu button click |
-| `buttonhover.wav` | Menu button hover |
-| `gameover.wav` | Game over |
-| `endmessage.wav` | End message (Good/Awesome/Perfect) |
-| `resultbgm.wav` | Result screen music |
-| `ambient.wav` | Result screen ambient |
-| `applause.wav` | Result screen applause |
+| Sound Type | File Name Examples |
+|------------|-------------------|
+| Hit | `hit.wav`, `hit1.wav`, `note.wav` |
+| Miss | `miss.wav`, `fail.wav` |
+| Special | `special.wav` |
+| Special Pass | `specialpass.wav`, `special_pass.wav` |
+| Special Fail | `specialfail.wav`, `special_fail.wav` |
+| Max Multiplier | `maxmultiplier.wav`, `6x.wav` |
+| Wall | `wall.wav` |
+| Button Click | `buttonclick.wav`, `click.wav` |
+| Button Hover | `buttonhover.wav`, `hover.wav` |
+| Result BGM | `resultbgm.wav`, `result.wav` |
+| Ambient | `ambient.wav`, `background.wav` |
+| End Message | `endmessage.wav`, `scoreend.wav` |
 
-## Multiple Sounds
+### Supported Formats
+- `.wav` (recommended)
+- `.ogg`
+- `.mp3`
 
-Add multiple files for random selection:
-
-```
-SynthCustomSounds/
-├── hit.wav           # Randomly selected
-├── hit2.wav          # Randomly selected
-├── hit_kick.ogg      # Randomly selected
-├── hit_snare.mp3     # Randomly selected
-└── miss.wav
-```
-
-The mod picks one at random each time!
+### Multiple Sounds
+You can have multiple sounds per type (e.g., `hit1.wav`, `hit2.wav`, `hit3.wav`). The mod will randomly select one each time.
 
 ## Configuration
 
-Edit `SynthCustomSounds/config.ini`:
+Edit `SynthRiders/SynthCustomSounds/config.ini`:
 
 ```ini
 [General]
@@ -74,89 +73,24 @@ debug = false
 [Audio]
 master_volume = 1.00
 pitch_variation = 0.05
-
-[Volumes]
-hit = 1.00
-miss = 1.00
-railstart = 0.80
-railend = 0.80
-special = 1.00
-specialpass = 1.20
-; ... etc
-
-[Enabled_Sounds]
-hit = true
-miss = true
-; ... set to false to use original game sound
 ```
 
-### Volume Settings
-- `0.00` = Silent
-- `1.00` = Normal (100%)
-- `2.00` = Double volume (200%)
+## Requirements
 
-### Pitch Variation
-- `0.00` = No variation
-- `0.05` = ±5% (subtle, recommended)
-- `0.10` = ±10% (noticeable)
-
-## Tips
-
-- **Keep hit sounds SHORT** (under 0.5 seconds)
-- **OGG format** recommended (small file, good quality)
-- **Empty files** (0 bytes) = mute that sound
-- **Delete a file** = use original game sound
-- **Check the console** for "✓ Loaded" messages
+- Synth Riders (PC/VR)
+- MelonLoader 0.6.x or 0.7.x
+- .NET 6
 
 ## Building from Source
 
-### Requirements
-- .NET 6.0 SDK
-- Synth Riders with MelonLoader (run once to generate assemblies)
-
-### Steps
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/0mniDreamer/SynthCustomSounds.git
-   ```
-
-2. Update the path in `SynthCustomSounds.csproj`:
-   ```xml
-   <SynthRidersPath>C:\Your\Path\To\Synth Riders</SynthRidersPath>
-   ```
-
-3. Build:
-   ```bash
-   dotnet build --configuration Release
-   ```
-
-4. The DLL is automatically copied to your Mods folder!
-
-## Troubleshooting
-
-### Mod not loading?
-- Check that MelonLoader 0.6.x is installed
-- Look for errors in `MelonLoader/Latest.log`
-- Verify the DLL is in the `Mods` folder
-
-### Sounds not playing?
-- Files must be in `SynthCustomSounds/` (in game root, not in Mods)
-- Check the console for loading messages
-- Verify format is WAV, OGG, or MP3
-- Make sure the sound type is enabled in config
-
-### Build errors?
-- Run the game once with MelonLoader first
-- Check that `MelonLoader/Il2CppAssemblies/` exists and contains DLLs
-- Verify the path in `.csproj` is correct
-
-## License
-
-MIT License - do whatever you want with it!
+1. Clone this repository
+2. Update the DLL references in `.csproj` to match your MelonLoader installation
+3. Build with `dotnet build -c Release`
 
 ## Credits
 
-- Built for Synth Riders by Kluge Interactive
-- Uses MelonLoader by LavaGang
-- Inspired by the Synth Riders modding community
+Created for the Synth Riders modding community.
+
+## License
+
+MIT License - Feel free to use, modify, and distribute.
