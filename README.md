@@ -22,7 +22,7 @@ Replace these sounds with your own:
 ### Result Screen Sounds
 - **Result BGM** - Background music on the score screen
 - **Ambient** - Ambient background audio
-- **End Message** - The score announcement sound
+- **End Message** - The scoreboard Results Screen Sound
 
 
 ## Installation
